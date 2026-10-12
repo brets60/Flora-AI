@@ -59,8 +59,11 @@ app.add_middleware(
 )
 
 # Serve uploaded static media files
-os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+try:
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+except Exception as e:
+    print(f"Static files mounting note: {e}")
 
 # Include API Routers under /api
 app.include_router(auth.router, prefix=settings.API_V1_STR)
