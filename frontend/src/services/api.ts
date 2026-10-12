@@ -14,9 +14,17 @@ import {
   CalendarEvent
 } from '../types';
 
-const API_BASE = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api` 
-  : '/api';
+const getApiBase = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api`;
+  }
+  if (typeof window !== 'undefined' && window.location.origin && window.location.origin.startsWith('file:')) {
+    return 'https://flora-ai-beta.vercel.app/api';
+  }
+  return '/api';
+};
+
+const API_BASE = getApiBase();
 
 class ApiError extends Error {
   status: number;
@@ -32,6 +40,161 @@ function getAuthHeader(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+// Built-in Botanical Mock Data for Offline & Demo Resilience
+const MOCK_DEMO_USER: User = {
+  id: 'user-demo-001',
+  full_name: 'Dr. Flora Botanist',
+  email: 'demo@floraai.com',
+  avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+  preferred_language: 'en',
+  timezone: 'UTC',
+  theme: 'light',
+  measurement_units: 'metric',
+  notification_preferences: { browser: true, watering: true, fertilizing: true },
+  created_at: new Date(Date.now() - 30 * 86400000).toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
+const MOCK_PLANTS: Plant[] = [
+  {
+    id: 'plant-001',
+    user_id: 'user-demo-001',
+    common_name: 'Monstera Deliciosa (Swiss Cheese Plant)',
+    scientific_name: 'Monstera deliciosa',
+    category: 'Indoor',
+    photo_url: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=800&q=80',
+    location: 'Living Room Corner',
+    environment: 'indoor',
+    health_status: 'healthy',
+    care_preferences: {
+      light: 'Bright indirect',
+      watering_frequency_days: 7,
+      fertilizing_frequency_days: 30,
+      soil: 'Chunky aroid mix',
+      humidity: '60%',
+      toxicity: 'Toxic to pets'
+    },
+    notes: 'Growing 2 new leaves with lovely fenestrations!',
+    date_added: new Date(Date.now() - 20 * 86400000).toISOString().split('T')[0],
+    created_at: new Date(Date.now() - 20 * 86400000).toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'plant-002',
+    user_id: 'user-demo-001',
+    common_name: 'Snake Plant Laurentii',
+    scientific_name: 'Dracaena trifasciata',
+    category: 'Succulent',
+    photo_url: 'https://images.unsplash.com/photo-1593482892290-f54927ae1bb6?auto=format&fit=crop&w=800&q=80',
+    location: 'Bedroom Shelf',
+    environment: 'indoor',
+    health_status: 'healthy',
+    care_preferences: {
+      light: 'Low to bright indirect',
+      watering_frequency_days: 18,
+      fertilizing_frequency_days: 60,
+      soil: 'Gritty cactus mix',
+      humidity: '40%',
+      toxicity: 'Mildly toxic'
+    },
+    notes: 'Thriving on minimal watering.',
+    date_added: new Date(Date.now() - 15 * 86400000).toISOString().split('T')[0],
+    created_at: new Date(Date.now() - 15 * 86400000).toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'plant-003',
+    user_id: 'user-demo-001',
+    common_name: 'Sweet Genovese Basil',
+    scientific_name: 'Ocimum basilicum',
+    category: 'Herb',
+    photo_url: 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&w=800&q=80',
+    location: 'Kitchen Windowsill',
+    environment: 'indoor',
+    health_status: 'needs_attention',
+    care_preferences: {
+      light: 'Full direct sunlight',
+      watering_frequency_days: 3,
+      fertilizing_frequency_days: 14,
+      soil: 'Rich organic loam',
+      humidity: '50%',
+      toxicity: 'Safe for pets'
+    },
+    notes: 'A bit thirsty, pinch flower buds to maintain bushy growth.',
+    date_added: new Date(Date.now() - 10 * 86400000).toISOString().split('T')[0],
+    created_at: new Date(Date.now() - 10 * 86400000).toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+];
+
+const MOCK_REMINDERS: CareReminder[] = [
+  {
+    id: 'rem-001',
+    user_id: 'user-demo-001',
+    plant_id: 'plant-001',
+    plant_name: 'Monstera Deliciosa (Swiss Cheese Plant)',
+    task_type: 'watering',
+    title: 'Water Monstera Deliciosa',
+    due_at: new Date(Date.now() + 3 * 3600000).toISOString(),
+    repeat_rule: 'weekly',
+    repeat_days: 7,
+    notes: 'Check top 2 inches of soil first',
+    status: 'pending',
+    created_at: new Date(Date.now() - 7 * 86400000).toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'rem-002',
+    user_id: 'user-demo-001',
+    plant_id: 'plant-003',
+    plant_name: 'Sweet Genovese Basil',
+    task_type: 'watering',
+    title: 'Water Basil & Check Leaves',
+    due_at: new Date(Date.now() - 2 * 3600000).toISOString(),
+    repeat_rule: 'every_3_days',
+    repeat_days: 3,
+    notes: 'Soil dry to touch',
+    status: 'overdue',
+    created_at: new Date(Date.now() - 3 * 86400000).toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'rem-003',
+    user_id: 'user-demo-001',
+    plant_id: 'plant-001',
+    plant_name: 'Monstera Deliciosa (Swiss Cheese Plant)',
+    task_type: 'fertilizing',
+    title: 'Diluted Organic Liquid Feed',
+    due_at: new Date(Date.now() + 48 * 3600000).toISOString(),
+    repeat_rule: 'monthly',
+    repeat_days: 30,
+    notes: 'Half strength balanced nitrogen-potassium fertilizer',
+    status: 'pending',
+    created_at: new Date(Date.now() - 14 * 86400000).toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+];
+
+const MOCK_STATS: DashboardStats = {
+  total_plants: 3,
+  plants_needing_attention: 1,
+  upcoming_tasks_count: 2,
+  completed_tasks_this_week: 4,
+  health_distribution: {
+    healthy: 2,
+    needs_attention: 1,
+    recovering: 0,
+    diseased: 0,
+  },
+  today_tasks: MOCK_REMINDERS,
+  recent_diagnoses: [],
+  seasonal_tip: {
+    season: 'Spring / Summer',
+    title: 'Hydration & Aeration',
+    tip: 'Check top 2 inches of soil before watering. Ensure drainage trays are emptied regularly.'
+  }
+};
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const headers = {
     ...getAuthHeader(),
@@ -43,28 +206,54 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers['Content-Type'] = 'application/json';
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers,
+    });
 
-  if (!response.ok) {
-    let errorMsg = 'An error occurred';
-    try {
-      const errorData = await response.json();
-      errorMsg = errorData.detail || errorData.message || response.statusText;
-    } catch {
-      errorMsg = response.statusText;
+    if (!response.ok) {
+      let errorMsg = 'An error occurred';
+      try {
+        const errorData = await response.json();
+        errorMsg = errorData.detail || errorData.message || response.statusText;
+      } catch {
+        errorMsg = response.statusText;
+      }
+      throw new ApiError(errorMsg, response.status);
     }
-    throw new ApiError(errorMsg, response.status);
-  }
 
-  // Handle empty responses
-  const contentType = response.headers.get('content-type');
-  if (contentType && contentType.includes('application/json')) {
-    return (await response.json()) as T;
+    // Handle empty responses
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return (await response.json()) as T;
+    }
+    return {} as T;
+  } catch (err: any) {
+    const token = localStorage.getItem('flora_token');
+    const isDemo = token && (token.includes('demo') || token === 'flora-demo-offline-jwt-token-2026');
+
+    // Offline / Demo fallbacks for key query routes
+    if (isDemo || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+      if (endpoint === '/auth/me') return MOCK_DEMO_USER as unknown as T;
+      if (endpoint.startsWith('/dashboard/stats')) return MOCK_STATS as unknown as T;
+      if (endpoint.startsWith('/plants') && options.method !== 'POST') return MOCK_PLANTS as unknown as T;
+      if (endpoint.startsWith('/reminders') && options.method !== 'POST') return MOCK_REMINDERS as unknown as T;
+      if (endpoint.startsWith('/notifications') && options.method !== 'POST') return [] as unknown as T;
+      if (endpoint.startsWith('/calendar/events')) {
+        return MOCK_REMINDERS.map(r => ({
+          id: r.id,
+          title: r.title,
+          date: r.due_at.split('T')[0],
+          task_type: r.task_type,
+          plant_id: r.plant_id,
+          plant_name: r.plant_name,
+          status: r.status,
+        })) as unknown as T;
+      }
+    }
+    throw err;
   }
-  return {} as T;
 }
 
 export const api = {

@@ -8,7 +8,7 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister }) => {
-  const { login } = useAuth();
+  const { login, loginDemoUser } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -33,12 +33,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToRegister }) => {
   };
 
   const handleDemoLogin = async () => {
-    setEmail('demo@floraai.com');
-    setPassword('FloraPassword123!');
     setIsLoading(true);
     setError(null);
     try {
-      await login('demo@floraai.com', 'FloraPassword123!');
+      await loginDemoUser();
     } catch (err: any) {
       setError(err.message || 'Demo login failed');
     } finally {

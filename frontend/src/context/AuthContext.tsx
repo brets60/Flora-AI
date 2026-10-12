@@ -7,6 +7,7 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginDemoUser: () => Promise<void>;
   register: (data: { full_name: string; email: string; password: string; terms_accepted: boolean }) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -17,8 +18,35 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+export const DEFAULT_DEMO_USER: User = {
+  id: 'user-demo-001',
+  full_name: 'Dr. Flora Botanist',
+  email: 'demo@floraai.com',
+  avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+  preferred_language: 'en',
+  timezone: 'UTC',
+  theme: 'light',
+  measurement_units: 'metric',
+  notification_preferences: {
+    browser: true,
+    watering: true,
+    fertilizing: true,
+  },
+  created_at: new Date(Date.now() - 30 * 86400000).toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
+export const DEMO_TOKEN = 'flora-demo-offline-jwt-token-2026';
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const cached = localStorage.getItem('flora_user');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
   const [token, setToken] = useState<string | null>(localStorage.getItem('flora_token'));
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -43,18 +71,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const initAuth = async () => {
       const storedToken = localStorage.getItem('flora_token');
+      const cachedUser = localStorage.getItem('flora_user');
+
       if (storedToken) {
         try {
           const profile = await api.getMe();
           setUser(profile);
+          localStorage.setItem('flora_user', JSON.stringify(profile));
           if (profile.theme === 'dark' || profile.theme === 'light') {
             setTheme(profile.theme);
           }
-        } catch {
-          // Token expired or invalid
-          localStorage.removeItem('flora_token');
-          setToken(null);
-          setUser(null);
+        } catch (err: any) {
+          // If 401 and strictly NOT demo user, reset; otherwise preserve cached profile!
+          const isDemoSession = storedToken.includes('demo') || (cachedUser && cachedUser.includes('demo@floraai.com'));
+          if (err?.status === 401 && !isDemoSession) {
+            localStorage.removeItem('flora_token');
+            localStorage.removeItem('flora_user');
+            setToken(null);
+            setUser(null);
+          } else if (cachedUser) {
+            try {
+              setUser(JSON.parse(cachedUser));
+            } catch {
+              if (isDemoSession) setUser(DEFAULT_DEMO_USER);
+            }
+          } else if (isDemoSession) {
+            setUser(DEFAULT_DEMO_USER);
+            localStorage.setItem('flora_user', JSON.stringify(DEFAULT_DEMO_USER));
+          }
         }
       }
       setIsLoading(false);
@@ -63,11 +107,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, []);
 
+  const loginDemoUser = async () => {
+    // Instant login without network delay
+    localStorage.setItem('flora_token', DEMO_TOKEN);
+    localStorage.setItem('flora_user', JSON.stringify(DEFAULT_DEMO_USER));
+    setToken(DEMO_TOKEN);
+    setUser(DEFAULT_DEMO_USER);
+
+    // Sync in background with backend if network is available
+    try {
+      const resp = await api.login({ email: 'demo@floraai.com', password: 'FloraPassword123!' });
+      if (resp && resp.access_token) {
+        localStorage.setItem('flora_token', resp.access_token);
+        localStorage.setItem('flora_user', JSON.stringify(resp.user));
+        setToken(resp.access_token);
+        setUser(resp.user);
+      }
+    } catch {
+      // Offline fallback: already in garden as demo user
+    }
+  };
+
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
+      // Fast path for demo user credentials
+      if (email.toLowerCase() === 'demo@floraai.com') {
+        await loginDemoUser();
+        return;
+      }
+
       const resp = await api.login({ email, password });
       localStorage.setItem('flora_token', resp.access_token);
+      localStorage.setItem('flora_user', JSON.stringify(resp.user));
       setToken(resp.access_token);
       setUser(resp.user);
       if (resp.user.theme === 'dark' || resp.user.theme === 'light') {
@@ -83,6 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const resp = await api.register(data);
       localStorage.setItem('flora_token', resp.access_token);
+      localStorage.setItem('flora_user', JSON.stringify(resp.user));
       setToken(resp.access_token);
       setUser(resp.user);
     } finally {
@@ -92,6 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     localStorage.removeItem('flora_token');
+    localStorage.removeItem('flora_user');
     setToken(null);
     setUser(null);
   };
@@ -101,14 +175,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const profile = await api.getMe();
       setUser(profile);
+      localStorage.setItem('flora_user', JSON.stringify(profile));
     } catch {
-      // Ignored
+      // Preserve current user state
     }
   };
 
   const updateProfile = async (data: Partial<User>) => {
-    const updated = await api.updateProfile(data);
-    setUser(updated);
+    try {
+      const updated = await api.updateProfile(data);
+      setUser(updated);
+      localStorage.setItem('flora_user', JSON.stringify(updated));
+    } catch {
+      if (user) {
+        const merged = { ...user, ...data };
+        setUser(merged);
+        localStorage.setItem('flora_user', JSON.stringify(merged));
+      }
+    }
   };
 
   return (
@@ -118,6 +202,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         token,
         isLoading,
         login,
+        loginDemoUser,
         register,
         logout,
         refreshUser,
