@@ -1,3 +1,14 @@
+---
+title: Flora AI Backend
+emoji: 🌿
+colorFrom: green
+colorTo: emerald
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+---
+
 # 🌿 FloraAI — Production AI-Powered Plant Care Assistant
 
 FloraAI is a production-oriented, full-stack botanical application designed to help beginners, gardeners, plant enthusiasts, and farmers identify plants, detect leaf diseases and pests, receive customized care schedules, and consult an AI Plant Doctor.
