@@ -3,7 +3,8 @@ title: Flora AI Backend
 emoji: 🌿
 colorFrom: green
 colorTo: green
-sdk: docker
+sdk: gradio
+app_file: app.py
 app_port: 7860
 pinned: false
 license: mit
