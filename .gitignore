@@ -38,3 +38,7 @@ yarn-debug.log*
 yarn-error.log*
 
 apk-build/build/
+
+.vercel
+.env*
+*.apk

@@ -18,6 +18,7 @@ import { Navbar } from './components/layout/Navbar';
 import { BottomNav } from './components/layout/BottomNav';
 import { AddPlantModal } from './components/plants/AddPlantModal';
 import { Plant, IdentificationCandidate } from './types';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 const MainApp: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -199,8 +200,10 @@ const MainApp: React.FC = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <MainApp />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

@@ -780,16 +780,41 @@ app.get('/api/articles/:slug', (req, res) => {
 app.get('/api/dashboard/stats', authenticate, (req, res) => {
   const userPlants = plants.filter(p => p.user_id === req.user.id || p.user_id === 'user-demo-001');
   const userReminders = reminders.filter(r => r.user_id === req.user.id || r.user_id === 'user-demo-001');
+  const pendingOrOverdue = userReminders.filter(r => r.status === 'pending' || r.status === 'overdue');
+  const completedThisWeek = careLogs.filter(l => l.user_id === req.user.id || l.user_id === 'user-demo-001').length;
+
   res.json({
     total_plants: userPlants.length,
     plants_needing_attention: userPlants.filter(p => p.health_status !== 'healthy').length,
-    upcoming_tasks_today: userReminders.filter(r => r.status === 'pending' || r.status === 'overdue').length,
-    recent_identifications_count: identifications.length,
+    upcoming_tasks_count: pendingOrOverdue.length,
+    upcoming_tasks_today: pendingOrOverdue.length,
+    completed_tasks_this_week: completedThisWeek,
+    health_distribution: {
+      healthy: userPlants.filter(p => p.health_status === 'healthy').length,
+      needs_attention: userPlants.filter(p => p.health_status === 'needs_attention').length,
+      recovering: userPlants.filter(p => p.health_status === 'recovering').length,
+      diseased: userPlants.filter(p => p.health_status === 'diseased').length
+    },
     health_overview: {
       healthy: userPlants.filter(p => p.health_status === 'healthy').length,
       needs_attention: userPlants.filter(p => p.health_status === 'needs_attention').length,
       recovering: userPlants.filter(p => p.health_status === 'recovering').length,
       diseased: userPlants.filter(p => p.health_status === 'diseased').length
+    },
+    today_tasks: pendingOrOverdue.map(r => {
+      const pl = plants.find(p => p.id === r.plant_id);
+      return {
+        ...r,
+        plant_photo: pl ? pl.photo_url : undefined,
+        repeat_rule: r.repeat_rule || 'weekly'
+      };
+    }),
+    recent_diagnoses: diagnoses.filter(d => d.user_id === req.user.id || d.user_id === 'user-demo-001'),
+    recent_identifications_count: identifications.length,
+    seasonal_tip: {
+      season: 'Autumn / Spring Transition',
+      title: 'Tapering Fertilizers & Moisture Balance',
+      tip: 'Check top 2 inches of soil before watering. Growth rates slow down as light levels shift, so avoid waterlogged pots and ensure drainage trays are emptied regularly.'
     }
   });
 });

@@ -76,10 +76,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (storedToken) {
         try {
           const profile = await api.getMe();
-          setUser(profile);
-          localStorage.setItem('flora_user', JSON.stringify(profile));
-          if (profile.theme === 'dark' || profile.theme === 'light') {
-            setTheme(profile.theme);
+          const isDemoSession = storedToken.includes('demo') || profile.email === 'demo@floraai.com' || (cachedUser && cachedUser.includes('demo@floraai.com'));
+          const merged = isDemoSession ? { ...DEFAULT_DEMO_USER, ...profile } : profile;
+          setUser(merged);
+          localStorage.setItem('flora_user', JSON.stringify(merged));
+          if (merged.theme === 'dark' || merged.theme === 'light') {
+            setTheme(merged.theme);
           }
         } catch (err: any) {
           // If 401 and strictly NOT demo user, reset; otherwise preserve cached profile!
@@ -118,10 +120,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const resp = await api.login({ email: 'demo@floraai.com', password: 'FloraPassword123!' });
       if (resp && resp.access_token) {
+        const mergedUser = { ...DEFAULT_DEMO_USER, ...resp.user };
         localStorage.setItem('flora_token', resp.access_token);
-        localStorage.setItem('flora_user', JSON.stringify(resp.user));
+        localStorage.setItem('flora_user', JSON.stringify(mergedUser));
         setToken(resp.access_token);
-        setUser(resp.user);
+        setUser(mergedUser);
       }
     } catch {
       // Offline fallback: already in garden as demo user

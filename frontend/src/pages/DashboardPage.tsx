@@ -99,9 +99,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
               Good day, {user?.full_name ? user.full_name.split(' ')[0] : 'Gardener'} 🌿
             </h1>
             <p className="text-sm text-forest-100/90 max-w-xl">
-              {stats?.total_plants === 0
+              {(stats?.total_plants || 0) === 0
                 ? "Your botanical sanctuary is ready. Add or identify your first plant to start personalized care scheduling."
-                : `You have ${stats?.total_plants} living specimens in your care. ${stats?.today_tasks.length || 0} tasks need your loving attention today.`}
+                : `You have ${stats?.total_plants || 0} living specimens in your care. ${(stats?.today_tasks || []).length} tasks need your loving attention today.`}
             </p>
           </div>
 
@@ -193,7 +193,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
               <Droplets className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-3xl font-extrabold text-forest-950 dark:text-leaf-100 mt-3">{stats?.today_tasks.length || 0}</p>
+          <p className="text-3xl font-extrabold text-forest-950 dark:text-leaf-100 mt-3">{(stats?.today_tasks || []).length}</p>
           <span className="text-xs text-leaf-600 dark:text-leaf-400 font-medium mt-1 inline-block">Scheduled for today →</span>
         </div>
 
@@ -232,12 +232,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
                 size="sm"
                 onClick={() => onNavigate('reminders')}
               >
-                View all ({stats?.upcoming_tasks_count || 0})
+                View all ({stats?.upcoming_tasks_count || (stats?.today_tasks || []).length})
               </Button>
             </div>
 
             <div className="mt-4 divide-y divide-botanical-border/40 dark:divide-botanical-darkBorder/40">
-              {stats?.today_tasks.length === 0 ? (
+              {(stats?.today_tasks || []).length === 0 ? (
                 <div className="py-10 text-center space-y-2">
                   <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center mx-auto text-xl">
                     ✨
@@ -246,7 +246,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
                   <p className="text-xs text-botanical-muted dark:text-botanical-darkMuted">No pending watering or care tasks due right now.</p>
                 </div>
               ) : (
-                stats?.today_tasks.map((task) => (
+                (stats?.today_tasks || []).map((task) => (
                   <div key={task.id} className="py-4 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5">
                       <div className="w-11 h-11 rounded-xl bg-forest-100 dark:bg-forest-900/50 overflow-hidden flex-shrink-0 flex items-center justify-center text-lg">
@@ -392,13 +392,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onOpen
               </button>
             </div>
 
-            {stats?.recent_diagnoses.length === 0 ? (
+            {(stats?.recent_diagnoses || []).length === 0 ? (
               <div className="py-6 text-center text-xs text-botanical-muted dark:text-botanical-darkMuted">
                 No disease diagnoses recorded yet. Your garden appears healthy!
               </div>
             ) : (
               <div className="space-y-3">
-                {stats?.recent_diagnoses.slice(0, 3).map((diag) => (
+                {(stats?.recent_diagnoses || []).slice(0, 3).map((diag) => (
                   <div
                     key={diag.id}
                     onClick={() => onNavigate('diagnose')}
