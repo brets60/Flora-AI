@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.venv/
+env/
+venv/
+
+# Build outputs
+frontend/dist/
+frontend/dist-ssr/
+*.local
+
+# Python cache & databases
+__pycache__/
+*.py[cod]
+*$py.class
+*.db
+*.sqlite3
+backend/flora.db
+backend/uploads/
+uploads/
+
+# Environment files
+.env
+backend/.env
+!.env.example
+!backend/.env.example
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
