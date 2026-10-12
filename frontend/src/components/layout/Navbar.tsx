@@ -139,8 +139,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-botanical-card dark:bg-botanical-darkCard rounded-2xl shadow-elevated border border-botanical-border dark:border-botanical-darkBorder p-4 z-50 animate-in fade-in slide-in-from-top-2">
-              <div className="flex items-center justify-between pb-3 border-b border-botanical-border/60 dark:border-botanical-darkBorder/60">
+            <>
+              {/* Mobile Backdrop to close on tap outside */}
+              <div
+                className="fixed inset-0 z-40 bg-forest-950/20 backdrop-blur-[1px] sm:hidden"
+                onClick={() => setShowNotifications(false)}
+              />
+              <div className="fixed inset-x-3 sm:inset-x-auto sm:absolute sm:right-0 top-16 sm:top-full sm:mt-2 sm:w-96 bg-botanical-card dark:bg-botanical-darkCard rounded-2xl shadow-elevated border border-botanical-border dark:border-botanical-darkBorder p-4 z-50 animate-in fade-in slide-in-from-top-2">
+                <div className="flex items-center justify-between pb-3 border-b border-botanical-border/60 dark:border-botanical-darkBorder/60">
                 <div className="flex items-center gap-2">
                   <h4 className="text-sm font-bold text-forest-900 dark:text-leaf-200">Notifications</h4>
                   {unreadCount > 0 && (
@@ -189,7 +195,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
             </div>
-          )}
+          </>
+        )}
         </div>
 
         {/* User Avatar Click to Settings */}

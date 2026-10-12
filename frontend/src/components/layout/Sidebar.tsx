@@ -11,16 +11,19 @@ import {
   BookOpen,
   Settings,
   LogOut,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface SidebarProps {
   currentTab: string;
   onTabChange: (tab: string) => void;
+  onClose?: () => void;
+  isMobile?: boolean;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange, onClose, isMobile = false }) => {
   const { user, logout } = useAuth();
 
   const navItems = [
@@ -37,19 +40,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
   ];
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 h-screen sticky top-0 bg-botanical-card dark:bg-botanical-darkCard border-r border-botanical-border dark:border-botanical-darkBorder flex-shrink-0 z-30 transition-colors">
+    <aside className={isMobile ? "flex flex-col w-full h-full bg-botanical-card dark:bg-botanical-darkCard z-30 transition-colors" : "hidden lg:flex flex-col w-64 h-screen sticky top-0 bg-botanical-card dark:bg-botanical-darkCard border-r border-botanical-border dark:border-botanical-darkBorder flex-shrink-0 z-30 transition-colors"}>
       {/* Brand Header */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-botanical-border/60 dark:border-botanical-darkBorder/60">
-        <div className="w-10 h-10 rounded-xl bg-forest-700 dark:bg-forest-800 flex items-center justify-center text-white shadow-soft">
-          <span className="text-xl">🌿</span>
-        </div>
-        <div>
-          <div className="flex items-center gap-1.5">
-            <h1 className="text-xl font-extrabold text-forest-800 dark:text-leaf-300 tracking-tight">FloraAI</h1>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-forest-100 dark:bg-forest-900/80 text-forest-700 dark:text-leaf-400">PRO</span>
+      <div className="flex items-center justify-between px-6 py-5 border-b border-botanical-border/60 dark:border-botanical-darkBorder/60">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-forest-700 dark:bg-forest-800 flex items-center justify-center text-white shadow-soft">
+            <span className="text-xl">🌿</span>
           </div>
-          <p className="text-xs text-botanical-muted dark:text-botanical-darkMuted">Botanical Care Assistant</p>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-xl font-extrabold text-forest-800 dark:text-leaf-300 tracking-tight">FloraAI</h1>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-forest-100 dark:bg-forest-900/80 text-forest-700 dark:text-leaf-400">PRO</span>
+            </div>
+            <p className="text-xs text-botanical-muted dark:text-botanical-darkMuted">Botanical Care Assistant</p>
+          </div>
         </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-xl text-botanical-muted hover:text-forest-700 hover:bg-forest-50 dark:hover:bg-forest-950/50 transition-colors"
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Navigation List */}
@@ -60,7 +74,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
           return (
             <button
               key={item.id}
-              onClick={() => onTabChange(item.id)}
+              onClick={() => {
+                onTabChange(item.id);
+                if (onClose) onClose();
+              }}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group ${
                 isActive
                   ? 'bg-forest-700 text-white shadow-sm font-semibold'

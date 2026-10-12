@@ -86,12 +86,12 @@ const MainApp: React.FC = () => {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
+        <div className="lg:hidden fixed inset-0 z-50 flex animate-in fade-in duration-200">
           <div
-            className="fixed inset-0 bg-forest-950/40 backdrop-blur-sm"
+            className="fixed inset-0 bg-forest-950/60 backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="relative w-64 bg-botanical-card dark:bg-botanical-darkCard h-full shadow-elevated flex flex-col z-10">
+          <div className="relative w-72 sm:w-80 bg-botanical-card dark:bg-botanical-darkCard h-full shadow-elevated flex flex-col z-10 animate-in slide-in-from-left duration-250">
             <Sidebar
               currentTab={currentTab}
               onTabChange={(tab) => {
@@ -99,6 +99,8 @@ const MainApp: React.FC = () => {
                 setMobileMenuOpen(false);
                 if (tab !== 'plant-detail') setSelectedPlantId(null);
               }}
+              onClose={() => setMobileMenuOpen(false)}
+              isMobile={true}
             />
           </div>
         </div>
