@@ -10,14 +10,20 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
     # Database: SQLite by default for zero-friction local development, PostgreSQL / Supabase supported
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./flora.db")
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL", 
+        "sqlite:////tmp/flora.db" if os.getenv("VERCEL") else "sqlite:///./flora.db"
+    )
     
     # Google Gemini API
     GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY", None)
     GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
     
     # Uploads
-    UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "uploads")
+    UPLOAD_DIR: str = os.getenv(
+        "UPLOAD_DIR", 
+        "/tmp/uploads" if os.getenv("VERCEL") else "uploads"
+    )
     MAX_UPLOAD_SIZE_MB: int = 10
     
     # CORS
