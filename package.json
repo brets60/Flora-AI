@@ -4,7 +4,7 @@
   "description": "FloraAI - AI-Powered Botanical Assistant & Plant Care",
   "main": "server/index.js",
   "scripts": {
-    "build": "echo Build ready",
+    "build": "node -e \"const fs = require('fs'); if (!fs.existsSync('dist')) fs.cpSync('public', 'dist', { recursive: true });\"",
     "start": "node server/index.js"
   },
   "dependencies": {
