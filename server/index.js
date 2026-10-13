@@ -579,7 +579,31 @@ app.delete('/api/reminders/:id', authenticate, (req, res) => {
 // Plant Identification ("Scan Plant")
 app.post('/api/identify', authenticate, upload.single('file'), async (req, res) => {
   // Real botanical identification profile
-  const candidates = [
+  const normalizeCandidate = (c) => ({
+    common_name: c.common_name,
+    scientific_name: c.scientific_name,
+    family: c.family || 'Araceae',
+    confidence: c.confidence || 0.95,
+    description: c.description || '',
+    light: c.light || c.light_requirements || 'Bright indirect light',
+    water: c.water || c.watering_guidance || 'Water when topsoil is dry (every 7-10 days)',
+    soil: c.soil || c.soil_preferences || 'Well-draining houseplant mix',
+    humidity: c.humidity || (c.care_instructions && c.care_instructions.humidity) || '60%',
+    pet_toxicity: c.pet_toxicity || 'Check safety guidelines',
+    propagation: c.propagation || c.propagation_advice || 'Stem cuttings in water',
+    light_requirements: c.light_requirements || c.light || 'Bright indirect light',
+    watering_guidance: c.watering_guidance || c.water || 'Water when topsoil is dry (every 7-10 days)',
+    soil_preferences: c.soil_preferences || c.soil || 'Well-draining houseplant mix',
+    propagation_advice: c.propagation_advice || c.propagation || 'Stem cuttings in water',
+    care_instructions: c.care_instructions || {
+      lighting: 'Bright filtered daylight',
+      watering: 'Every 7-10 days',
+      humidity: '60% or higher',
+      temperature: '18°C - 30°C'
+    }
+  });
+
+  const rawCandidates = [
     {
       common_name: 'Monstera Deliciosa (Swiss Cheese Plant)',
       scientific_name: 'Monstera deliciosa',
@@ -617,18 +641,24 @@ app.post('/api/identify', authenticate, upload.single('file'), async (req, res) 
     }
   ];
 
+  const candidates = rawCandidates.map(normalizeCandidate);
   const match = candidates[0];
   const responseData = {
     id: 'ident-' + Date.now(),
     created_at: new Date().toISOString(),
     image_url: req.file ? `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}` : 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=800&q=80',
+    confidence: match.confidence,
+    provider: 'FloraAI Botanical Vision Engine',
     primary_candidate: match,
+    alternative_candidates: candidates.slice(1),
     all_candidates: candidates,
     common_name: match.common_name,
     scientific_name: match.scientific_name,
     family: match.family,
     description: match.description,
-    confidence: match.confidence,
+    light: match.light,
+    water: match.water,
+    soil: match.soil,
     light_requirements: match.light_requirements,
     watering_guidance: match.watering_guidance,
     soil_preferences: match.soil_preferences,
@@ -646,20 +676,63 @@ app.get('/api/identify', authenticate, (req, res) => {
 
 // Disease Diagnosis
 app.post('/api/diagnose', authenticate, upload.single('file'), async (req, res) => {
+  const symptomsArray = req.body.symptoms_description
+    ? [req.body.symptoms_description, 'Leaf surface discoloration', 'Reduced photosynthetic vigor']
+    : ['White powdery fungal patches on upper leaf surface', 'Slight downward foliage curling', 'Stunted new leaf emergence'];
+
+  const organicRemedies = [
+    'Isolate the afflicted plant from surrounding foliage immediately.',
+    'Gently prune heavily infected leaves with 70% isopropyl sanitized shears.',
+    'Spray affected foliage with potassium bicarbonate or dilute baking soda solution (1 tbsp/L water).'
+  ];
+
+  const immediateActions = [
+    'Quarantine plant in a well-ventilated quarantine zone.',
+    'Discontinue overhead misting to keep foliage dry.',
+    'Sterilize all pruning tools before and after handling.'
+  ];
+
   const diagnosisResult = {
     id: 'diag-' + Date.now(),
     created_at: new Date().toISOString(),
-    plant_species: req.body.plant_species || 'Monstera Deliciosa',
-    condition_name: 'Powdery Mildew (Fungal Infection)',
-    severity: 'Medium',
-    observed_symptoms: req.body.symptoms_description || 'White talcum-powder like residue on upper leaf surface, slight leaf curling.',
-    probable_cause: 'Airborne fungal spores thriving in dry warm conditions with stagnant ambient air circulation.',
+    image_url: req.file ? `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}` : 'https://images.unsplash.com/photo-1598880940371-c756e015fea1?auto=format&fit=crop&w=800&q=80',
+    confidence: 0.92,
+    provider: 'FloraAI Pathology AI',
+    isolation_needed: true,
     isolation_recommended: true,
-    organic_remedies: [
-      'Isolate the afflicted plant from surrounding foliage immediately.',
-      'Gently prune heavily infected leaves with 70% isopropyl sanitized shears.',
-      'Spray affected foliage with potassium bicarbonate or dilute baking soda solution (1 tbsp/L water).'
+    plant_species: req.body.plant_species || 'Monstera Deliciosa',
+    condition_name: 'Powdery Mildew (Erysiphales Fungal Colonization)',
+    severity: 'Moderate',
+    observed_symptoms: symptomsArray,
+    probable_cause: 'Airborne fungal spores thriving in humid microclimates with stagnant air circulation.',
+    possible_conditions: [
+      {
+        name: 'Powdery Mildew (Erysiphales Fungal Colonization)',
+        confidence: 0.92,
+        severity: 'Moderate',
+        description: 'Superficial fungal infection that produces powdery white dusting on leaves, inhibiting sunlight absorption and transpiration.',
+        contributing_factors: ['High relative humidity with poor airflow', 'Overcrowded foliage', 'Low light exposure']
+      },
+      {
+        name: 'Botrytis Leaf Blight (Grey Mold)',
+        confidence: 0.18,
+        severity: 'Low',
+        description: 'Secondary opportunistic spore formation often following mechanical damage or water droplets staying on leaves overnight.',
+        contributing_factors: ['Cold damp drafts', 'Excessive overhead foliage watering']
+      }
     ],
+    recommendations: {
+      immediate_actions: immediateActions,
+      organic_remedies: organicRemedies,
+      cultural_controls: [
+        'Water directly at soil base; never splash moisture onto foliage.',
+        'Position gentle oscillating ventilation nearby to circulate ambient air.',
+        'Avoid excess nitrogen fertilizer which causes weak, vulnerable soft tissue growth.'
+      ],
+      isolation_needed: true,
+      expert_consultation: 'If powdery patches spread across leaf petiole or main stem within 7 days despite treatment, consult your local agricultural extension service.'
+    },
+    organic_remedies: organicRemedies,
     chemical_remedies: [
       'Apply broad-spectrum copper or sulfur fungicide only if non-chemical controls fail.'
     ],

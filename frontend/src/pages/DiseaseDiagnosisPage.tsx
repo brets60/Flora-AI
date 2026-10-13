@@ -125,10 +125,10 @@ export const DiseaseDiagnosisPage: React.FC = () => {
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-forest-900 dark:text-leaf-200 truncate">
-                      {h.possible_conditions[0]?.name || 'Analyzed Issue'}
+                      {h.possible_conditions?.[0]?.name || (h as any).condition_name || 'Analyzed Issue'}
                     </h4>
                     <span className="text-[10px] text-amber-700 font-semibold block">
-                      {(h.confidence * 100).toFixed(0)}% confidence • {h.isolation_needed ? 'Quarantine' : 'Standard care'}
+                      {((h.confidence || 0.9) * 100).toFixed(0)}% confidence • {(h.isolation_needed ?? (h as any).isolation_recommended) ? 'Quarantine' : 'Standard care'}
                     </span>
                   </div>
                 </div>
@@ -277,9 +277,9 @@ export const DiseaseDiagnosisPage: React.FC = () => {
                 <div className="pb-4 border-b border-botanical-border/60">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-forest-100 text-forest-800">
-                      Estimated {(result.confidence * 100).toFixed(0)}% Probability
+                      Estimated {((result.confidence || 0.9) * 100).toFixed(0)}% Probability
                     </span>
-                    {result.isolation_needed && (
+                    {(result.isolation_needed ?? (result as any).isolation_recommended) && (
                       <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 flex items-center gap-1">
                         <ShieldAlert className="w-3 h-3" />
                         Isolate Plant
@@ -287,10 +287,10 @@ export const DiseaseDiagnosisPage: React.FC = () => {
                     )}
                   </div>
                   <h3 className="text-xl sm:text-2xl font-extrabold text-forest-950 dark:text-leaf-100 tracking-tight mt-2">
-                    {result.possible_conditions[0]?.name}
+                    {result.possible_conditions?.[0]?.name || (result as any).condition_name || 'Analyzed Plant Condition'}
                   </h3>
                   <p className="text-xs text-botanical-muted leading-relaxed mt-1">
-                    {result.possible_conditions[0]?.description}
+                    {result.possible_conditions?.[0]?.description || (result as any).probable_cause || 'Pathology assessment complete.'}
                   </p>
                 </div>
 
@@ -300,7 +300,10 @@ export const DiseaseDiagnosisPage: React.FC = () => {
                     Observed Physical Indicators:
                   </h4>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    {result.observed_symptoms.map((symptom, idx) => (
+                    {(Array.isArray(result.observed_symptoms)
+                      ? result.observed_symptoms
+                      : [typeof result.observed_symptoms === 'string' ? result.observed_symptoms : 'Physical symptoms observed']
+                    ).map((symptom, idx) => (
                       <li key={idx} className="flex items-center gap-2 p-2.5 rounded-xl bg-botanical-bg/60 border border-botanical-border/50 text-botanical-text">
                         <span className="text-emerald-600">✓</span>
                         <span>{symptom}</span>
@@ -315,28 +318,28 @@ export const DiseaseDiagnosisPage: React.FC = () => {
                     Immediate Actionable Care:
                   </h4>
 
-                  {result.recommendations.immediate_actions && (
+                  {(result.recommendations?.immediate_actions || []).length > 0 && (
                     <div className="p-4 rounded-2xl bg-forest-50/70 dark:bg-forest-950/40 border border-forest-100 space-y-1.5 text-xs">
                       <span className="font-bold text-forest-900 dark:text-leaf-200 block">Step 1: Immediate Triage</span>
-                      {result.recommendations.immediate_actions.map((act, i) => (
+                      {(result.recommendations?.immediate_actions || []).map((act, i) => (
                         <p key={i} className="text-botanical-muted leading-normal">• {act}</p>
                       ))}
                     </div>
                   )}
 
-                  {result.recommendations.organic_remedies && (
+                  {((result.recommendations?.organic_remedies || (result as any).organic_remedies) || []).length > 0 && (
                     <div className="p-4 rounded-2xl bg-leaf-50/70 dark:bg-leaf-950/30 border border-leaf-200 space-y-1.5 text-xs">
                       <span className="font-bold text-forest-900 dark:text-leaf-200 block">Step 2: Non-Chemical & Organic Remedies</span>
-                      {result.recommendations.organic_remedies.map((rem, i) => (
+                      {((result.recommendations?.organic_remedies || (result as any).organic_remedies) || []).map((rem: string, i: number) => (
                         <p key={i} className="text-botanical-muted leading-normal">• {rem}</p>
                       ))}
                     </div>
                   )}
 
-                  {result.recommendations.expert_consultation && (
+                  {(result.recommendations?.expert_consultation || (result as any).expert_consultation_advised) && (
                     <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-gray-900/40 border border-gray-200 text-xs text-botanical-muted">
                       <span className="font-bold text-gray-800 dark:text-gray-200 block mb-0.5">Agricultural Extension Guidance:</span>
-                      {result.recommendations.expert_consultation}
+                      {result.recommendations?.expert_consultation || (result as any).expert_consultation_advised}
                     </div>
                   )}
                 </div>

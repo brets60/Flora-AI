@@ -125,10 +125,14 @@ export const ScanPlantPage: React.FC<ScanPlantPageProps> = ({ onSaveToGarden }) 
                     <img src={h.image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-forest-900 dark:text-leaf-200 truncate">{h.primary_candidate.common_name}</h4>
-                    <p className="text-[11px] text-botanical-muted italic truncate">{h.primary_candidate.scientific_name}</p>
+                    <h4 className="text-xs font-bold text-forest-900 dark:text-leaf-200 truncate">
+                      {h.primary_candidate?.common_name || (h as any).common_name || 'Botanical Specimen'}
+                    </h4>
+                    <p className="text-[11px] text-botanical-muted italic truncate">
+                      {h.primary_candidate?.scientific_name || (h as any).scientific_name || ''}
+                    </p>
                     <span className="text-[10px] text-forest-700 font-semibold mt-1 inline-block">
-                      {(h.confidence * 100).toFixed(0)}% confidence
+                      {((h.confidence || 0.95) * 100).toFixed(0)}% confidence
                     </span>
                   </div>
                 </div>
@@ -232,23 +236,34 @@ export const ScanPlantPage: React.FC<ScanPlantPageProps> = ({ onSaveToGarden }) 
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-forest-700 dark:text-leaf-400 uppercase tracking-wider">
-                        {result.primary_candidate.family || 'Identified Specimen'}
+                        {result.primary_candidate?.family || (result as any).family || 'Identified Specimen'}
                       </span>
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-forest-100 dark:bg-forest-900 text-forest-800 dark:text-leaf-300 font-bold">
-                        {(result.confidence * 100).toFixed(0)}% Confidence
+                        {((result.confidence || result.primary_candidate?.confidence || 0.95) * 100).toFixed(0)}% Confidence
                       </span>
                     </div>
                     <h3 className="text-2xl font-extrabold text-forest-950 dark:text-leaf-100 tracking-tight mt-1">
-                      {result.primary_candidate.common_name}
+                      {result.primary_candidate?.common_name || (result as any).common_name || 'Specimen'}
                     </h3>
                     <p className="text-sm text-botanical-muted italic mt-0.5">
-                      {result.primary_candidate.scientific_name}
+                      {result.primary_candidate?.scientific_name || (result as any).scientific_name || ''}
                     </p>
                   </div>
 
                   <Button
                     variant="primary"
-                    onClick={() => onSaveToGarden(result.primary_candidate, result.image_url)}
+                    onClick={() => {
+                      const candidateToSave = result.primary_candidate || {
+                        common_name: (result as any).common_name || 'Specimen',
+                        scientific_name: (result as any).scientific_name || '',
+                        confidence: result.confidence || 0.95,
+                        description: (result as any).description || '',
+                        light: (result as any).light_requirements || 'Bright indirect light',
+                        water: (result as any).watering_guidance || 'Weekly',
+                        soil: (result as any).soil_preferences || 'Potting soil',
+                      };
+                      onSaveToGarden(candidateToSave, result.image_url);
+                    }}
                     icon={<Plus className="w-4 h-4" />}
                   >
                     Save to My Garden
@@ -257,7 +272,7 @@ export const ScanPlantPage: React.FC<ScanPlantPageProps> = ({ onSaveToGarden }) 
 
                 {/* Description */}
                 <p className="text-xs text-botanical-muted dark:text-botanical-darkMuted leading-relaxed">
-                  {result.primary_candidate.description}
+                  {result.primary_candidate?.description || (result as any).description || 'Botanical inspection completed successfully.'}
                 </p>
 
                 {/* Botanical Metrics Grid */}
@@ -267,7 +282,9 @@ export const ScanPlantPage: React.FC<ScanPlantPageProps> = ({ onSaveToGarden }) 
                       <Sun className="w-4 h-4 text-amber-500" />
                       <span>Light Needs</span>
                     </div>
-                    <p className="text-botanical-muted dark:text-botanical-darkMuted leading-normal">{result.primary_candidate.light}</p>
+                    <p className="text-botanical-muted dark:text-botanical-darkMuted leading-normal">
+                      {result.primary_candidate?.light || (result as any).light_requirements || 'Bright indirect light'}
+                    </p>
                   </div>
 
                   <div className="p-3.5 rounded-2xl bg-forest-50/60 dark:bg-forest-950/30 border border-forest-100/70 dark:border-forest-900/50 space-y-1">
@@ -275,7 +292,9 @@ export const ScanPlantPage: React.FC<ScanPlantPageProps> = ({ onSaveToGarden }) 
                       <Droplets className="w-4 h-4 text-sky-500" />
                       <span>Watering Routine</span>
                     </div>
-                    <p className="text-botanical-muted dark:text-botanical-darkMuted leading-normal">{result.primary_candidate.water}</p>
+                    <p className="text-botanical-muted dark:text-botanical-darkMuted leading-normal">
+                      {result.primary_candidate?.water || (result as any).watering_guidance || 'Water when topsoil is dry'}
+                    </p>
                   </div>
 
                   <div className="p-3.5 rounded-2xl bg-forest-50/60 dark:bg-forest-950/30 border border-forest-100/70 dark:border-forest-900/50 space-y-1">
@@ -283,7 +302,9 @@ export const ScanPlantPage: React.FC<ScanPlantPageProps> = ({ onSaveToGarden }) 
                       <Sprout className="w-4 h-4 text-leaf-500" />
                       <span>Soil Substrate</span>
                     </div>
-                    <p className="text-botanical-muted dark:text-botanical-darkMuted leading-normal">{result.primary_candidate.soil}</p>
+                    <p className="text-botanical-muted dark:text-botanical-darkMuted leading-normal">
+                      {result.primary_candidate?.soil || (result as any).soil_preferences || 'Well-draining potting soil'}
+                    </p>
                   </div>
 
                   <div className="p-3.5 rounded-2xl bg-forest-50/60 dark:bg-forest-950/30 border border-forest-100/70 dark:border-forest-900/50 space-y-1">
@@ -291,30 +312,34 @@ export const ScanPlantPage: React.FC<ScanPlantPageProps> = ({ onSaveToGarden }) 
                       <ShieldAlert className="w-4 h-4 text-rose-500" />
                       <span>Toxicity Warning</span>
                     </div>
-                    <p className="text-botanical-muted dark:text-botanical-darkMuted leading-normal">{result.primary_candidate.pet_toxicity || 'Check local guidelines'}</p>
+                    <p className="text-botanical-muted dark:text-botanical-darkMuted leading-normal">
+                      {result.primary_candidate?.pet_toxicity || (result as any).pet_toxicity || 'Check local guidelines'}
+                    </p>
                   </div>
                 </div>
 
                 {/* Propagation Advice */}
-                {result.primary_candidate.propagation && (
+                {(result.primary_candidate?.propagation || (result as any).propagation_advice) && (
                   <div className="p-4 rounded-2xl bg-leaf-50/40 dark:bg-leaf-950/20 border border-leaf-200/60 dark:border-forest-900 space-y-1 text-xs">
                     <h5 className="font-bold text-forest-900 dark:text-leaf-200">Propagation Advice</h5>
-                    <p className="text-botanical-muted leading-relaxed">{result.primary_candidate.propagation}</p>
+                    <p className="text-botanical-muted leading-relaxed">
+                      {result.primary_candidate?.propagation || (result as any).propagation_advice}
+                    </p>
                   </div>
                 )}
 
                 {/* Alternative Candidates if any */}
-                {result.alternative_candidates.length > 0 && (
+                {(result.alternative_candidates || []).length > 0 && (
                   <div className="pt-4 border-t border-botanical-border/60 space-y-2">
                     <h5 className="text-xs font-bold text-forest-900 dark:text-leaf-200">Alternative Potential Matches:</h5>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {result.alternative_candidates.map((alt, idx) => (
+                      {(result.alternative_candidates || []).map((alt, idx) => (
                         <div key={idx} className="p-2.5 rounded-xl border border-botanical-border text-xs flex justify-between items-center">
                           <div>
                             <span className="font-semibold text-forest-900 dark:text-leaf-200">{alt.common_name}</span>
                             <span className="text-[11px] text-botanical-muted block italic">{alt.scientific_name}</span>
                           </div>
-                          <span className="text-[10px] text-botanical-muted">{(alt.confidence * 100).toFixed(0)}%</span>
+                          <span className="text-[10px] text-botanical-muted">{((alt.confidence || 0.9) * 100).toFixed(0)}%</span>
                         </div>
                       ))}
                     </div>

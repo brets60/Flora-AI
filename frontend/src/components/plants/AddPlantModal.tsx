@@ -41,12 +41,12 @@ export const AddPlantModal: React.FC<AddPlantModalProps> = ({
   // Populate prefill data if opened from Plant Identification scan!
   useEffect(() => {
     if (prefillCandidate) {
-      setCommonName(prefillCandidate.common_name);
-      setScientificName(prefillCandidate.scientific_name);
+      setCommonName(prefillCandidate.common_name || '');
+      setScientificName(prefillCandidate.scientific_name || '');
       setLight(prefillCandidate.light || 'Bright indirect');
       setSoil(prefillCandidate.soil || 'Well-draining potting soil');
       setToxicity(prefillCandidate.pet_toxicity || 'Check safety');
-      setNotes(`Identified via FloraAI. ${prefillCandidate.description}`);
+      setNotes(`Identified via FloraAI. ${prefillCandidate.description || ''}`);
     }
     if (prefillImageUrl) {
       setPhotoPreview(prefillImageUrl);

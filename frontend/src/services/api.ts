@@ -195,6 +195,85 @@ const MOCK_STATS: DashboardStats = {
   }
 };
 
+const MOCK_IDENTIFICATION: IdentificationResponse = {
+  id: 'ident-mock-001',
+  image_url: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=800&q=80',
+  confidence: 0.96,
+  provider: 'FloraAI Botanical Vision Engine',
+  primary_candidate: {
+    common_name: 'Monstera Deliciosa (Swiss Cheese Plant)',
+    scientific_name: 'Monstera deliciosa',
+    family: 'Araceae',
+    confidence: 0.96,
+    description: 'Iconic tropical evergreen climbing vine celebrated for its perforated, fenestrated heart-shaped leaves.',
+    light: 'Bright indirect sunlight. Avoid harsh midday direct beams.',
+    water: 'Allow top 2-3 inches of soil to dry out between waterings (every 7-10 days).',
+    soil: 'Chunky, well-aerated potting substrate with orchid bark and perlite.',
+    humidity: '60% or higher for optimal leaf fenestration development.',
+    pet_toxicity: 'Toxic to pets if ingested (contains insoluble calcium oxalates).',
+    propagation: 'Stem cuttings taking node and aerial root immersed in fresh water.'
+  },
+  alternative_candidates: [
+    {
+      common_name: "Golden Pothos (Devil's Ivy)",
+      scientific_name: 'Epipremnum aureum',
+      family: 'Araceae',
+      confidence: 0.94,
+      description: 'Hardy trailing vine with marbled golden variegation and high resilience to low light.',
+      light: 'Tolerates low to bright indirect filtered light.',
+      water: 'Water once top 50% of soil has completely dried out.',
+      soil: 'Standard potting soil with good bottom drainage.',
+      pet_toxicity: 'Toxic to cats and dogs if chewed.',
+      propagation: 'Node cuttings in water root readily within 1-2 weeks.'
+    }
+  ],
+  created_at: new Date().toISOString()
+};
+
+const MOCK_DIAGNOSIS: DiagnosisResponse = {
+  id: 'diag-mock-001',
+  image_url: 'https://images.unsplash.com/photo-1598880940371-c756e015fea1?auto=format&fit=crop&w=800&q=80',
+  confidence: 0.92,
+  provider: 'FloraAI Pathology AI',
+  isolation_needed: true,
+  observed_symptoms: [
+    'Superficial powdery white fungal mycelium on upper leaf surface',
+    'Subtle leaf curling and slowed new growth emergence',
+    'Decreased photosynthetic efficiency'
+  ],
+  possible_conditions: [
+    {
+      name: 'Powdery Mildew (Erysiphales Fungal Colonization)',
+      confidence: 0.92,
+      severity: 'Moderate',
+      description: 'Superficial fungal infection producing powdery white dusting on foliage, inhibiting sunlight absorption.',
+      contributing_factors: [
+        'High ambient humidity with stagnant air circulation',
+        'Overcrowded foliage in indoor environments',
+        'Foliage wetness from overhead misting'
+      ]
+    }
+  ],
+  recommendations: {
+    immediate_actions: [
+      'Quarantine plant in a separate ventilated space away from other plants.',
+      'Gently prune heavily affected leaves using sanitized shears.',
+      'Cease all overhead leaf misting immediately to keep foliage dry.'
+    ],
+    organic_remedies: [
+      'Spray affected foliage with mild potassium bicarbonate or baking soda solution (1 tbsp/L water).',
+      'Wipe down remaining foliage with diluted neem oil emulsion in low-light conditions.'
+    ],
+    cultural_controls: [
+      'Position an oscillating fan nearby to ensure continuous gentle air exchange.',
+      'Always hydrate directly at soil level; avoid wetting leaves.'
+    ],
+    isolation_needed: true,
+    expert_consultation: 'If fungal colonization spreads to stems within 7 days despite treatment, contact your local plant clinic.'
+  },
+  created_at: new Date().toISOString()
+};
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const headers = {
     ...getAuthHeader(),
@@ -240,6 +319,14 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       if (endpoint.startsWith('/plants') && options.method !== 'POST') return MOCK_PLANTS as unknown as T;
       if (endpoint.startsWith('/reminders') && options.method !== 'POST') return MOCK_REMINDERS as unknown as T;
       if (endpoint.startsWith('/notifications') && options.method !== 'POST') return [] as unknown as T;
+      if (endpoint.startsWith('/identify')) {
+        if (options.method === 'POST') return MOCK_IDENTIFICATION as unknown as T;
+        return [MOCK_IDENTIFICATION] as unknown as T;
+      }
+      if (endpoint.startsWith('/diagnose')) {
+        if (options.method === 'POST') return MOCK_DIAGNOSIS as unknown as T;
+        return [MOCK_DIAGNOSIS] as unknown as T;
+      }
       if (endpoint.startsWith('/calendar/events')) {
         return MOCK_REMINDERS.map(r => ({
           id: r.id,
