@@ -42,3 +42,4 @@ apk-build/build/
 .vercel
 .env*
 *.apk
+!public/FloraAI.apk

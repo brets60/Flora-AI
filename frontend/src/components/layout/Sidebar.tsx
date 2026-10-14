@@ -12,7 +12,9 @@ import {
   Settings,
   LogOut,
   ChevronRight,
-  X
+  X,
+  Smartphone,
+  Download
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -102,6 +104,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange, onClo
           );
         })}
       </nav>
+
+      {/* Mobile App Direct Download Banner */}
+      <div className="px-3 pb-3">
+        <a
+          href="/FloraAI.apk"
+          download="FloraAI.apk"
+          className="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-forest-800 to-forest-900 text-white shadow-soft hover:shadow-card hover:scale-[1.01] transition-all group"
+          title="Direct Download FloraAI Android APK to Phone"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center text-leaf-300">
+              <Smartphone className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold leading-tight">Android App</p>
+              <p className="text-[10px] text-leaf-200/80">Direct Download (.apk)</p>
+            </div>
+          </div>
+          <Download className="w-4 h-4 text-leaf-300 group-hover:translate-y-0.5 transition-transform" />
+        </a>
+      </div>
 
       {/* User Section & Logout */}
       <div className="p-4 border-t border-botanical-border/60 dark:border-botanical-darkBorder/60 bg-forest-50/30 dark:bg-forest-950/20">

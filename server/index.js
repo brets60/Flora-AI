@@ -20,6 +20,29 @@ app.use((req, res, next) => {
   next();
 });
 
+// Direct APK Download Endpoints
+const serveApk = (req, res) => {
+  const possiblePaths = [
+    path.join(process.cwd(), 'public', 'FloraAI.apk'),
+    path.join(__dirname, '..', 'public', 'FloraAI.apk'),
+    path.join(__dirname, 'public', 'FloraAI.apk'),
+    path.join(process.cwd(), 'FloraAI.apk')
+  ];
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+      res.setHeader('Content-Disposition', 'attachment; filename="FloraAI.apk"');
+      return res.sendFile(p);
+    }
+  }
+  // Fallback redirect to GitHub raw direct download
+  res.redirect(302, 'https://raw.githubusercontent.com/brets60/Flora-AI/main/public/FloraAI.apk');
+};
+
+app.get('/api/download-apk', serveApk);
+app.get('/api/FloraAI.apk', serveApk);
+app.get('/downloads/FloraAI.apk', serveApk);
+
 const upload = multer({ limits: { fileSize: 15 * 1024 * 1024 } });
 const JWT_SECRET = process.env.SECRET_KEY || 'flora-botanical-secret-key-super-secure-production-ready-2026';
 

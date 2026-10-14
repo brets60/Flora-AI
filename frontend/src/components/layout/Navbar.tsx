@@ -7,7 +7,9 @@ import {
   Check,
   Trash2,
   Menu,
-  X
+  X,
+  Download,
+  Smartphone
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
@@ -115,6 +117,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Sparkles className="w-3.5 h-3.5 text-leaf-500 animate-subtle-pulse" />
           <span>{healthStatus?.gemini_ai_configured ? 'Gemini 1.5 Flash Vision' : 'FloraAI Engine (Offline)'}</span>
         </div>
+
+        {/* Direct APK Download Button */}
+        <a
+          href="/FloraAI.apk"
+          download="FloraAI.apk"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-forest-700 hover:bg-forest-800 text-white text-xs font-bold shadow-soft transition-all active:scale-95"
+          title="Download FloraAI Android APK directly to your phone"
+        >
+          <Smartphone className="w-3.5 h-3.5 text-leaf-300" />
+          <span className="hidden sm:inline">Get App (APK)</span>
+          <span className="sm:hidden text-[11px]">APK</span>
+        </a>
 
         {/* Theme Toggle */}
         <button
